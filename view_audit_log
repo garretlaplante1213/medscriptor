@@ -1,0 +1,37 @@
+import base64
+from cryptography.fernet import Fernet
+import toml
+import os
+
+# Path to your Streamlit secrets file
+secrets_path = os.path.join(".streamlit", "secrets.toml")
+
+# Load secrets manually (since we’re outside Streamlit)
+secrets = toml.load(secrets_path)
+fernet_key = secrets["FERNET_KEY"].encode()
+fernet = Fernet(fernet_key)
+
+LOG_FILE = "audit_log.txt"
+
+def read_audit_log():
+    if not os.path.exists(LOG_FILE):
+        print("⚠️ No audit log file found.")
+        return
+    with open(LOG_FILE, "r") as log:
+        lines = log.readlines()
+    decrypted_lines = []
+    for line in lines:
+        try:
+            encrypted_entry = base64.b64decode(line.strip())
+            decrypted_entry = fernet.decrypt(encrypted_entry).decode()
+            decrypted_lines.append(decrypted_entry)
+        except Exception as e:
+            decrypted_lines.append(f"Error decrypting line: {e}")
+    return decrypted_lines
+
+if __name__ == "__main__":
+    logs = read_audit_log()
+    if logs:
+        print("📜 Decrypted Audit Log:")
+        for entry in logs:
+            print(entry)
