@@ -1,20 +1,10 @@
 streamlit==1.48.1
-
-# OpenAI and Whisper (prebuilt)
 openai==1.3.0
-whisper @ git+https://github.com/openai/whisper.git
+openai-whisper==20230401
 torch==2.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-
-# Audio recorder
 audio-recorder-streamlit==0.0.4
-
-# PDF generation
 reportlab==3.6.13
-
-# Password hashing
 bcrypt==4.0.1
-
-# Common data libraries
 numpy==1.25.2
 pandas==2.3.1
 pyarrow==11.0.0
