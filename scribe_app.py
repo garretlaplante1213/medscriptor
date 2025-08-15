@@ -1,4 +1,4 @@
-# test deployment
+
 import streamlit as st
 import whisper
 import os
@@ -17,22 +17,7 @@ import base64
 import bcrypt
 import json
 
-def get_secret(key, default=None):
-    """
-    Read config from Streamlit secrets first, then environment variables.
-    Works on Streamlit Cloud (st.secrets) and Azure (App Settings env vars).
-    """
-    try:
-        return st.secrets[key]
-    except Exception:
-        return os.environ.get(key, default)
-
-DATA_DIR = os.getenv("APP_DATA_DIR", "/home/site/data")  # Azure persistent path; locally we'll create ./data
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-USERS_FILE = os.path.join(DATA_DIR, "users.json")
-LOG_FILE = os.path.join(DATA_DIR, "audit_log.txt")
+USERS_FILE = "users.json"
 
 def load_users():
     # Load users dictionary from users.json file
@@ -56,8 +41,6 @@ def check_password(password: str, hashed: str) -> bool:
 
 LOG_FILE = "audit_log.txt"
 
-os.makedirs(DATA_DIR, exist_ok=True)
-
 def log_event(username, action):
     """Encrypt and write an audit log entry with timestamp, username, and action."""
     plaintext = f"{datetime.datetime.now()} - {username} - {action}\n"
@@ -76,14 +59,8 @@ def read_audit_log():
             print(decrypted_entry)
 
 from cryptography.fernet import Fernet
-
-FERNET_KEY = get_secret("FERNET_KEY")  # put this in .streamlit/secrets.toml locally and in Azure App Settings later
-if not FERNET_KEY:
-    st.error("Missing FERNET_KEY. Please set it in .streamlit/secrets.toml (local) or Azure App Settings.")
-    st.stop()
-
-# Accept either plain string or bytes
-fernet = Fernet(FERNET_KEY.encode() if isinstance(FERNET_KEY, str) else FERNET_KEY)
+fernet_key = st.secrets["FERNET_KEY"].encode()
+fernet = Fernet(fernet_key)
 
 def encrypt_file(data: bytes) -> bytes:
     """Encrypt audio bytes."""
@@ -107,7 +84,7 @@ if not st.session_state.authenticated:
     if st.button("➕ Register New Provider"):
         st.session_state.show_registration = not st.session_state.show_registration  # Toggle visibility
 
-    ACCESS_KEY = get_secret("PROVIDER_ACCESS_KEY", "")
+    ACCESS_KEY = "12345"
 
     if st.session_state.show_registration:
         st.markdown("---")
@@ -186,11 +163,11 @@ def get_audio_hash(audio_path):
         return hashlib.md5(f.read()).hexdigest()
 
 client = AzureOpenAI(
-    api_key=get_secret("AZURE_OPENAI_API_KEY"),
-    api_version=get_secret("AZURE_OPENAI_API_VERSION", "2024-08-01-preview"),  # or whatever version you’re using
-    azure_endpoint=get_secret("AZURE_OPENAI_ENDPOINT")
+    api_key=st.secrets["azure_openai"]["api_key"],   
+    api_version=st.secrets["azure_openai"]["api_version"],
+    azure_endpoint=st.secrets["azure_openai"]["endpoint"]
 )
-deployment_name = get_secret("AZURE_OPENAI_DEPLOYMENT_NAME")
+deployment_name = st.secrets["azure_openai"]["deployment_name"]
 
 @st.cache_resource
 def load_model():
