@@ -34,8 +34,10 @@ tornado==6.5.2
 typing_extensions==4.14.1
 tzdata==2025.2
 urllib3==2.5.0
-openai
-openai-whisper
-audio-recorder-streamlit
-reportlab
-bcrypt
+openai==1.48.1
+audio-recorder-streamlit==0.0.4
+reportlab==3.6.13
+bcrypt==4.0.1
+bycrypt==4.0.1
+whisper @ git+https://github.com/openai/whisper.git
+torch==2.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
